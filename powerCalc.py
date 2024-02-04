@@ -4,31 +4,22 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 from enviroment import Enviroment
+from rider import Rider
 
 class Application:
 
   def __init__(self):
-    # track
     self.enviroment = Enviroment()
-    # rider
-    self.riderWeigthBody = None
-    self.riderWeigthBike = None
-    self.riderWeigth = None
+    self.rider = Rider()
 
   def setInput(self):
-    # track
     self.enviroment.setGpxFilePath("input/OetztalRadmarathon.gpx")
-    # rider
-    self.riderWeigthBody = 77.1
-    self.riderWeigthBike = 10.0
-
-  def initRider(self):
-    self.riderWeigth = self.riderWeigthBody + self.riderWeigthBike 
-    pass
+    self.rider.setWeigth(77.1+10.0)
+    self.rider.setFtp(250)
 
   def init(self):
-    # track
     self.enviroment.init()
+    self.rider.init()
 
   def plot(self):
     fig, axs = plt.subplots(2)
