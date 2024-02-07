@@ -31,10 +31,8 @@ class Application:
     self.integrator.init()
 
   def run(self):
-    self.speed, self.power = self.integrator.getSpeedAndPower()
-    self.time = np.zeros_like(self.speed)
-    for i in range(1, len(self.time)):
-      self.time[i] = self.time[i-1] + self.enviroment.segLength[i-1] / self.speed[i]
+    self.speed, self.power, self.time = self.integrator.getSpeedPowerTime()
+    self.kjoule = self.integrator.getEnergy(self.power, self.time) * 0.001
 
   def printSummay(self):
     t = self.time[-1]
@@ -53,6 +51,10 @@ class Application:
       print("{}: min={}, max={}, avg={}".format(name, mina, maxa, avga))
     printStats("Speed", self.speed * mps2kph)
     printStats("Power", self.power)
+    kcal = int(self.kjoule * joule2cal)
+    kcalPerHour = math.ceil(kcal / (self.time[-1] / 60**2))
+    print("kcal: {} ".format(kcal))
+    print("kcal/h: {} -> {} g sugar".format(kcalPerHour, kcalPerHour / kcalPerGSugar))
 
   def plot(self):
     fig, axs = plt.subplots(1)

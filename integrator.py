@@ -37,12 +37,13 @@ class Integrator:
   def init(self):
     self.strategy = StrategyBase(self.rider)
 
-  def getSpeedAndPower(self):
+  def getSpeedPowerTime(self):
     if self.rider == None or self.enviroment == None:
       sys.exit("Integrator needs rider and enviroment !")
     noPoints = self.enviroment.noPoints
     speed = np.zeros(noPoints)
     power = np.zeros(noPoints)
+    time  = np.zeros(noPoints)
     power[0] = self.strategy.getPower()
     dx = 1.0 # meter
     for i in range(1, noPoints):
@@ -54,6 +55,7 @@ class Integrator:
       speed_ = speed[i-1]
       speed[i] = 0.0
       power[i] = 0.0
+      time[i] = 0.0
       dt = 0.0
       for j in range(noSubSteps):
         power_ = self.strategy.getPower(speed_, slope)
@@ -71,4 +73,11 @@ class Integrator:
         power[i] += power_ * dt_
       speed[i] /= dt
       power[i] /= dt
-    return speed, power
+      time[i] = time[i-1] + dt
+    return speed, power, time
+
+  def getEnergy(self, power, time):
+    joule = 0.0
+    for i in range(1,len(power)):
+      joule += power[i] * ( time[i] - time[i-1] )
+    return joule
