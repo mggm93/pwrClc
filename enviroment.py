@@ -21,9 +21,11 @@ class Enviroment:
     self.lat = None
     self.lon = None
     self.ele = None
+    self.segLength = None
     self.distance = None
     self.slope = None
     self.totalHeight = None
+    self.rho = 1.2
 
   def setGpxFilePath(self, gpxFilePath):
     self.gpxFilePath = gpxFilePath
@@ -37,6 +39,7 @@ class Enviroment:
     gpxFile = open(self.gpxFilePath, 'r')
     gpx = gpxpy.parse(gpxFile)
     # gpx file type 1
+    self.noPoints = 0
     for route in gpx.routes:
       self.noPoints += len(route.points)
     self.lat = np.zeros(self.noPoints)
@@ -89,28 +92,66 @@ class Enviroment:
     c = 2 * math.atan2(np.sqrt(a), np.sqrt(1.0-a))
     d = R * c
     distance = d * 1000.0 # meters
-    #return (distance**2 + (ele2 - ele1)**2)**0.5
-    return distance
+    return (distance**2 + (ele2 - ele1)**2)**0.5
+    #return distance
+
+  def _smooth(self, x, n=5, window='hanning'):
+    if x.size < n:
+        raise ValueError("Input vector needs to be larger than window size.")
+    if n == 1:  # no need to apply filter
+        return x
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        msg = "Only possible windows: 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError(msg)
+
+    xadd_left = 2 * x[0] - x[n:0:-1]
+    xadd_right = 2 * x[-1] - x[-2:-n - 2:-1]
+    x_expanded = np.concatenate((xadd_left, x, xadd_right))
+
+    if window == 'flat':  # moving average
+        w = np.ones(n, 'd')
+    else:
+        w = eval('np.' + window + '(n)')
+
+    y = np.convolve(w / w.sum(), x_expanded, mode='valid')
+    istart = int(n / 2) + 1
+    return y[istart:istart + len(x)]
+
+  def _smoothTrack(self, n=15, window='hanning'):
+    self.lat = self._smooth(self.lat, n=n, window=window)
+    self.lon = self._smooth(self.lon, n=n, window=window)
+    self.ele = self._smooth(self.ele, n=n, window=window)
 
   def _postProcessGpxData(self):
+
+    self._smoothTrack()
+    # Calculate segment length
+    self.segLength = np.zeros(self.noPoints-1)
+    for i in range(0, self.noPoints-1):
+      self.segLength[i] = self._distanceBetweenPoints(i+1, i)
+    # Calculate segment ele
+    self.segEle = np.zeros(self.noPoints-1)
+    for i in range(0, self.noPoints-1):
+      self.segEle[i] = self.ele[i+1] - self.ele[i]
     # Calculate distance for each point
     self.distance = np.zeros(self.noPoints)
     self.distance[0] = 0.0
     for i in range(1, self.noPoints):
-      self.distance[i] = self.distance[i-1] + self._distanceBetweenPoints(i, i-1)
-    # smooth elevation
-    ele = self.ele.copy()
-    windowSize = 21
-    polyDeg = 3
-    self.ele = savgol_filter(ele, windowSize, polyDeg, deriv=0)
+      self.distance[i] = self.distance[i-1] + self.segLength[i-1]
     # Calculate slope for each point
     self.slope = np.zeros(self.noPoints)
-    self.slope[0] = (self.ele[1] - self.ele[0]) / (self.distance[1] - self.distance[0])
-    self.slope[-1] = (self.ele[-1] - self.ele[-2]) / \
-        (self.distance[-1] - self.distance[-2])
+    dEle = self.ele[1] - self.ele[0]
+    dDis = self.distance[1] - self.distance[0]
+    self.slope[0]  = math.asin( dEle / dDis )
+    dEle = self.ele[-1] - self.ele[-2]
+    dDis = self.distance[-1] - self.distance[-2]
+    self.slope[-1]  = math.asin( dEle / dDis )
     for i in range(1, self.noPoints-1):
-      self.slope[i] = (self.ele[i+1] - self.ele[i-1]) / \
-          (self.distance[i+1] - self.distance[i-1])
+      dEle = self.ele[i+1] - self.ele[i-1]
+      dDis = self.distance[i+1] - self.distance[i-1]
+      #print("DBG: {}/{}: dEle={}, dDis={}".format(i, self.noPoints, dEle, dDis))
+      self.slope[i]  = math.asin( dEle / dDis )
+
     # calculate total height
     self.totalHeight = 0.0
     for i in range(1, self.noPoints):
