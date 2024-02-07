@@ -16,13 +16,12 @@ class Application:
 
   def __init__(self):
     self.enviroment = Enviroment()
-    self.rider = Rider()
+    self.rider = None
     self.integrator = Integrator()
 
   def setInput(self):
     self.enviroment.setGpxFilePath("input/OetztalRadmarathon.gpx")
-    self.rider.setWeigth(78.0+10.0)
-    self.rider.setFtp(280)
+    self.rider = Rider(weight=78.0+10.0, ftp=280)
 
   def init(self):
     self.enviroment.init()
@@ -36,12 +35,24 @@ class Application:
     self.time = np.zeros_like(self.speed)
     for i in range(1, len(self.time)):
       self.time[i] = self.time[i-1] + self.enviroment.segLength[i-1] / self.speed[i]
-    t = self.time[i-1]
+
+  def printSummay(self):
+    t = self.time[-1]
     s = int(t % 60)
     t = t // 60
     m = int(t % 60)
     h = int(t // 60)
     print("Finish time: {}:{}:{}".format(h, m, s))
+    def printStats(name, array):
+      mina = np.min(array)
+      maxa = np.max(array)
+      avga = 0.0
+      for i in range(1,len(self.time)):
+        avga += array[i] * (self.time[i] - self.time[i-1])
+      avga /= self.time[-1]
+      print("{}: min={}, max={}, avg={}".format(name, mina, maxa, avga))
+    printStats("Speed", self.speed * mps2kph)
+    printStats("Power", self.power)
 
   def plot(self):
     fig, axs = plt.subplots(1)
@@ -70,6 +81,7 @@ def main():
   app.setInput()
   app.init()
   app.run()
+  app.printSummay()
   app.plot()
 
 if __name__ == '__main__':

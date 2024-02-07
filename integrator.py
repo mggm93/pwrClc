@@ -60,6 +60,7 @@ class Integrator:
         F_power = power_/max(0.01, speed_)
         F_gravity = - self.rider.weight * g * math.sin(slope)
         F_drag = - 0.5 * self.enviroment.rho * self.rider.cd * self.rider.aref * speed_**2.0
+        # TODO: add friciton from tire proportional to speed
         F_res = F_power + F_drag + F_gravity
         acc = F_res / self.rider.weight
         sign = lambda x: (1, -1)[x<0]
