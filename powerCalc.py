@@ -20,7 +20,8 @@ class Application:
     self.integrator = Integrator()
 
   def setInput(self):
-    self.enviroment.setGpxFilePath("input/OetztalRadmarathon.gpx")
+    #self.enviroment.setGpxFilePath("input/OetztalRadmarathon.gpx")
+    self.enviroment.setGpxFilePath("input/Mallorca312.gpx")
     self.rider = Rider(weight=78.0+10.0, ftp=280)
 
   def init(self):
@@ -48,13 +49,15 @@ class Application:
       for i in range(1,len(self.time)):
         avga += array[i] * (self.time[i] - self.time[i-1])
       avga /= self.time[-1]
-      print("{}: min={}, max={}, avg={}".format(name, mina, maxa, avga))
+      print("{}: min={:.2f}, max={:.2f}, avg={:.2f}".format(name, mina, maxa, avga))
     printStats("Speed", self.speed * mps2kph)
     printStats("Power", self.power)
     kcal = int(self.kjoule * joule2cal)
     kcalPerHour = math.ceil(kcal / (self.time[-1] / 60**2))
-    print("kcal: {} ".format(kcal))
-    print("kcal/h: {} -> {} g sugar".format(kcalPerHour, kcalPerHour / kcalPerGSugar))
+    print("kcal: {:.2f} ".format(kcal))
+    print("kcal/h: {:.2f} -> {:.2f} g sugar".format(kcalPerHour, kcalPerHour / kcalPerGSugar))
+    print("total : {:.2f}km, {:.2f}hm".format(self.enviroment.totalDistance*.001,\
+        self.enviroment.totalHeight))
 
   def plot(self):
     fig, axs = plt.subplots(1)

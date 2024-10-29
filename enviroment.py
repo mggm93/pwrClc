@@ -24,6 +24,7 @@ class Enviroment:
     self.segLength = None
     self.distance = None
     self.slope = None
+    self.totalDistance = None
     self.totalHeight = None
     self.rho = 1.2
 
@@ -138,6 +139,7 @@ class Enviroment:
     self.distance[0] = 0.0
     for i in range(1, self.noPoints):
       self.distance[i] = self.distance[i-1] + self.segLength[i-1]
+    self.totalDistance = self.distance[-1]
     # Calculate slope for each point
     self.slope = np.zeros(self.noPoints)
     dEle = self.ele[1] - self.ele[0]
