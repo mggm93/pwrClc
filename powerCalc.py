@@ -60,10 +60,10 @@ class Application:
         self.enviroment.totalHeight))
 
   def plot(self):
-    fig, axs = plt.subplots(1)
+    fig, axs = plt.subplots(2)
+    # altitude/speed over distance
+    ax = axs[0]
     #
-    #ax = axs[0]
-    ax = axs
     ax.set_title("distance = {}km, height = {}hm".format(\
         int(self.enviroment.distance[-1]*0.001), int(self.enviroment.totalHeight)))
     color = 'gray'
@@ -78,7 +78,14 @@ class Application:
     ax2.set_ylabel('speed [kph]', color=color)
     ax2.tick_params(labelcolor=color)
     ax2.plot(self.enviroment.distance*m2km, self.speed*mps2kph, color=color)
+    # 3D map
+    axs[1].remove()
+    axs[1] = fig.add_subplot(2, 1, 2, projection='3d')
+    ax = axs[1]
+    color = 'gray'
+    ax.plot(self.enviroment.lon, self.enviroment.lat, self.enviroment.ele, color=color)
     #
+    plt.tight_layout()
     plt.show()
 
 def main():

@@ -118,14 +118,7 @@ class Enviroment:
     istart = int(n / 2) + 1
     return y[istart:istart + len(x)]
 
-  def _smoothTrack(self, n=15, window='hanning'):
-    self.lat = self._smooth(self.lat, n=n, window=window)
-    self.lon = self._smooth(self.lon, n=n, window=window)
-    self.ele = self._smooth(self.ele, n=n, window=window)
-
   def _postProcessGpxData(self):
-
-    self._smoothTrack()
     # Calculate segment length
     self.segLength = np.zeros(self.noPoints-1)
     for i in range(0, self.noPoints-1):
@@ -151,7 +144,6 @@ class Enviroment:
     for i in range(1, self.noPoints-1):
       dEle = self.ele[i+1] - self.ele[i-1]
       dDis = self.distance[i+1] - self.distance[i-1]
-      #print("DBG: {}/{}: dEle={}, dDis={}".format(i, self.noPoints, dEle, dDis))
       self.slope[i]  = math.asin( dEle / dDis )
 
     # calculate total height
