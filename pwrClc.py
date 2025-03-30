@@ -30,7 +30,7 @@ class Application:
     tomlArgs = toml.load(args.inputFile)
     # rider
     riderArgs = tomlArgs["rider"]
-    self.rider = Rider(weight=riderArgs["weight"], ftp=riderArgs["ftp"])
+    self.rider = Rider(riderArgs)
     # track
     self.enviroment.setGpxFilePath(tomlArgs["track"]["filePath"])
 
