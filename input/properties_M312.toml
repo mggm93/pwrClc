@@ -1,0 +1,6 @@
+[rider]
+ftp    = 280
+weight = 88.0 # 78 + 10 bike and equipment
+
+[track]
+filePath = 'input/Mallorca312.gpx'

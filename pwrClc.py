@@ -3,7 +3,9 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
+import argparse
 import numpy as np
+import toml
 
 from constants import *
 from enviroment import Enviroment
@@ -19,10 +21,18 @@ class Application:
     self.rider = None
     self.integrator = Integrator()
 
-  def setInput(self):
-    #self.enviroment.setGpxFilePath("input/OetztalRadmarathon.gpx")
-    self.enviroment.setGpxFilePath("input/Mallorca312.gpx")
-    self.rider = Rider(weight=78.0+10.0, ftp=280)
+  def readInput(self):
+    parser = argparse.ArgumentParser(
+        prog="pwrClc",
+        description="Bike track calculator based on rider profile and gpx track")
+    parser.add_argument('inputFile')
+    args = parser.parse_args()
+    tomlArgs = toml.load(args.inputFile)
+    # rider
+    riderArgs = tomlArgs["rider"]
+    self.rider = Rider(weight=riderArgs["weight"], ftp=riderArgs["ftp"])
+    # track
+    self.enviroment.setGpxFilePath(tomlArgs["track"]["filePath"])
 
   def init(self):
     self.enviroment.init()
@@ -90,7 +100,7 @@ class Application:
 
 def main():
   app = Application()
-  app.setInput()
+  app.readInput()
   app.init()
   app.run()
   app.printSummay()
